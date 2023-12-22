@@ -11,7 +11,7 @@ function NavBar() {
       <Container>
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link href="#home">Home</Nav.Link>
+            <Nav.Link as={Link} to ="/">Home</Nav.Link>
             <Nav.Link as={Link} to = "/top-tracks">TopTracks</Nav.Link>
             <Nav.Link as={Link} to="/playlists">
               Playlists

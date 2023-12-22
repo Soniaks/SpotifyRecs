@@ -5,7 +5,9 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 import NavBar from './Components/NavBar';
 import TopTracks from './Components/TopTracks';
-import Playlists from './Components/Playlists';
+import Playlists from './Components/Playlists/Playlists';
+import Reccomend from './Components/Playlists/Reccomend';
+import Home from './Components/Home'
 
 
 function App() {
@@ -110,23 +112,9 @@ function App() {
       });
       return Promise.resolve(data);
     } catch (error) {
-      console.error("Error fetching profile:", error.response.data);
-
-      console.error(error.stack)
       return Promise.reject(error)
     }
   };
-  const renderProfile = () => {
-    return profile ? ( 
-        <div >
-          {profile}
-        </div>
-   
-      ):(
-      <p>No profile available</p>
-    );
-  };
-
 
 
   const logout = () => {
@@ -134,35 +122,30 @@ function App() {
     window.localStorage.removeItem("token");
   };
 
-  console.log(playlists)
   return (
     <Router>
     <div className="App">
       <header className="App-header">
-        <NavBar/>
+        <NavBar />
         <h1>Spotify App</h1>
         {!token ? (
           <a href={`${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=${SCOPE}`}>
             Login to Spotify
           </a>
         ) : (
-          <>
-            <button onClick={logout}>Logout</button>
-            <form onSubmit={getTopTracks}>
-              <button type="submit">Refresh Top Tracks</button>
-            </form>
-            <Routes>
-            <Route path="/top-tracks" element={<TopTracks topTracks={topTracks} />} />
-            <Route path="/playlists" element={<Playlists Playlists={playlists}/>}/>
-            <Route path="/" element={<TopTracks topTracks={topTracks} />} />
-            </Routes>
-          </>
+          <p></p>
         )}
+      
 
-        {renderProfile()}
+        <Routes>
+          <Route path="/top-tracks" element={<TopTracks topTracks={topTracks} />} />
+          <Route path="/playlists" element={<Playlists Playlists={playlists} token={token} />} />
+          <Route path="/recommendations/:playlistIndex" element={<Reccomend />} />
+          <Route path="/" element={<Home token={token} logout={logout} />} />
+        </Routes>
       </header>
     </div>
-    </Router>
+  </Router>
   );
 }
 
