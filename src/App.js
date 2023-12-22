@@ -134,6 +134,7 @@ function App() {
     window.localStorage.removeItem("token");
   };
 
+  console.log(playlists)
   return (
     <Router>
     <div className="App">

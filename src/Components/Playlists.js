@@ -1,10 +1,10 @@
 import React from 'react';
 
-const Playlists = ({ playlists }) => {
-    console.log(playlists)
+const Playlists = ({ Playlists }) => {
+    console.log(Playlists)
     return (
       <div>
-        {playlists.map((playlist, index) => (
+        {Playlists.map((playlist, index) => (
           <p key={index}>{playlist.name}</p>
         ))}
       </div>
