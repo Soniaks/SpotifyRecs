@@ -2,16 +2,35 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 
-const getRecPl = async (token, track) => {
+const getRecPl = async (token, href) => {
   try {
-    console.log(track.name)
-    const { data } = await axios.get(`https://api.spotify.com/v1/recommendations?limit=10&seed_tracks=${track.id}`, {
+    console.log(href)
+    const { data } = await axios.get(href + "/tracks", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    return Promise.resolve(data.tracks);
+    console.log(data.items[0])
+    const track = data.items[0].track.id
+    const artist = data.items[0].track.artists[0].id
+    const genre = data.items[0].track.artists
+    console.log(track)
+    console.log(artist)
+    console.log(genre)
+    const { data: data2 } = await axios.get("https://api.spotify.com/v1/recommendations", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        seed_artists: artist,
+        seed_genres: genre.map((artist) => artist.id).join(","), // assuming genre is an array
+        seed_tracks: track,
+      },
+    });
+    console.log(data2)
+    return Promise.resolve(data2);
   } catch (error) {
+    console.error(error.stack)
     return Promise.reject(error);
   }
 };
@@ -20,19 +39,18 @@ const Reccomend = () => {
   const location = useLocation();
   const { token = '', playlist = [] } = location.state || {};
   const [recommendedTracks, setRecommendedTracks] = useState([]);
-  console.log(playlist.tracks.total)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log("here")
+        console.log(playlist)
         if (playlist.tracks.total > 0) {
-          console.log(playlist.tracks)
-          const firstTrack = playlist.tracks;
-          const recTracks = await getRecPl(token, firstTrack);
-          setRecommendedTracks(recTracks);
+          console.log(playlist.href)
+          const recTracks = await getRecPl(token, playlist.href);
+          setRecommendedTracks(recTracks.tracks);
         }
       } catch (error) {
+        console.error(error.stack)
         console.error("Error fetching recommendations:", error);
       }
     };
@@ -51,6 +69,7 @@ const Reccomend = () => {
     </div>
   );
 };
+
 
 export default Reccomend;
 
