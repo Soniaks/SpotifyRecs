@@ -3,7 +3,6 @@ import { useNavigate} from 'react-router-dom';
 
 const Playlists = ({ Playlists, token}) => {
   const navigate = useNavigate();
-  console.log("log")
   const navigateToRecommendations = (selectedIndex, selectedPlaylist) => {
     console.log(selectedPlaylist)
     navigate(`/recommendations/${selectedIndex}`, {

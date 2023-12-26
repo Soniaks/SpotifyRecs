@@ -23,6 +23,33 @@ function App() {
   const [playlists, setPlaylists] = useState([]);
   const [userID, setUserID] = useState("");
 
+  /*useEffect(() => {
+    // Check if the user is already logged in (retrieve from localStorage)
+    const storedLoginStatus = localStorage.getItem('isLoggedIn');
+    if (storedLoginStatus === 'true') {
+      setIsLoggedIn(true);
+    }
+  }, []);*/
+
+  /*const handleLogin = () => {
+    // Perform your login logic here
+    // Set the login status to true
+    setIsLoggedIn(true);
+
+    // Persist the login status in localStorage
+    localStorage.setItem('isLoggedIn', 'true');
+  };
+
+  const handleLogout = () => {
+    // Perform your logout logic here
+    setToken("");
+    window.localStorage.removeItem("token");
+    setIsLoggedIn(false);
+
+    // Remove the login status from localStorage
+    localStorage.removeItem('isLoggedIn');
+  };*/
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -68,6 +95,7 @@ function App() {
 
   const getTopTracks = async () => {
     try {
+      console.log("top")
       // The axios.get method returns a Promise
       const { data } = await axios.get("https://api.spotify.com/v1/me/top/tracks", {
         headers: {
@@ -117,11 +145,6 @@ function App() {
   };
 
 
-  const logout = () => {
-    setToken("");
-    window.localStorage.removeItem("token");
-  };
-
   return (
     <Router>
     <div className="App">
@@ -141,7 +164,7 @@ function App() {
           <Route path="/top-tracks" element={<TopTracks topTracks={topTracks} />} />
           <Route path="/playlists" element={<Playlists Playlists={playlists} token={token} />} />
           <Route path="/recommendations/:playlistIndex" element={<Reccomend />} />
-          <Route path="/" element={<Home token={token} logout={logout} />} />
+          <Route path="/" element={<Home token={token}/>} />
         </Routes>
       </header>
     </div>

@@ -1,15 +1,19 @@
 import React from 'react';
-const Home = ({ token, logout }) => (
+const Home = ({ token}) => (
+  
+  <div>
+  {token ? (
     <div>
-      {!token ? (
-        <p>Please log in to Spotify.</p>
-      ) : (
-        <>
-          <p>Welcome! You are logged in.</p>
-          <button onClick={logout}>Logout</button>
-        </>
-      )}
+      <p>Welcome! You are logged in.</p>
+   
     </div>
+  ) : (
+    <div>
+      <p>Please log in to continue.</p>
+
+    </div>
+  )}
+</div>
   );
 
   export default Home;
