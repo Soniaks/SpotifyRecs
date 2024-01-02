@@ -9,6 +9,7 @@ import { CgRemove} from "react-icons/cg";
 const getRecPl = async (token, href) => {
   try {
     console.log(href)
+    console.log(token);
     const { data } = await axios.get(href + "/tracks", {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -69,10 +70,13 @@ const handleAddToSelected = (trackId) => {
 
 const handleRemoveSelected = (trackId) => {
   // Remove the track from the selectedTracks array
-  setSelectedTracks((prevSelectedTracks) => prevSelectedTracks.filter((id) => id !== trackId));
-
+   setSelectedTracks((prevSelectedTracks) => prevSelectedTracks.filter((track) => track.id !== trackId));
+  
   // Get the removed track from recommendedTracks
   const removedTrack = recommendedTracks.find((track) => track.id === trackId);
+  console.log(trackId)
+  console.log(selectedTracks[0].id)
+  console.log(removedTrack)
 
   // Check if removedTrack is defined before adding it back to recommendedTracks
   if (removedTrack) {
@@ -83,6 +87,7 @@ const handleRemoveSelected = (trackId) => {
 
 const refresh = () => {
   console.log(selectedTracks)
+  setRecommendedTracks([]);
   fetchData();
 };
 
