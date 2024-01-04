@@ -15,7 +15,7 @@ function App() {
   const REDIRECT_URI = "http://localhost:3000";
   const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
   const RESPONSE_TYPE = "access_token";
-  const SCOPE = "user-read-private user-read-email playlist-read-private user-top-read"
+  const SCOPE = "user-read-private user-read-email playlist-read-private user-top-read playlist-modify-public playlist-modify-private"
 
   const [topTracks, setTopTracks] = useState([]);
   const [playlists, setPlaylists] = useState([]);
@@ -146,7 +146,7 @@ async function generateCodeChallenge(codeVerifier) {
     try {
       console.log(token)
       // The axios.get method returns a Promise
-      const { data } = await axios.get("https://api.spotify.com/v1/me/top/tracks", {
+      const { data } = await axios.get("https://api.spotify.com/v1/me/top/tracks?time_range=short_term", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

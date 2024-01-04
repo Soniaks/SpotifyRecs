@@ -3,12 +3,12 @@ const Home = () => (
   
   <div>
     <div>
-      <p>Welcome! You are logged in.</p>
+      <p></p>
    
     </div>
 
     <div>
-      <p>Please log in to continue.</p>
+      <p></p>
 
     </div>
   

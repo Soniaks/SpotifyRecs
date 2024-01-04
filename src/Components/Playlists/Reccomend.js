@@ -6,16 +6,8 @@ import { CgRemove} from "react-icons/cg";
 
 
 
-const getRecPl = async (token, href) => {
+const getRecPl = async (token, data, dance, en, loud, temp) => {
   try {
-    console.log(href)
-    console.log(token);
-    const { data } = await axios.get(href + "/tracks", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    console.log(data.items[0])
     const track = data.items[0].track.id
     const artist = data.items[0].track.artists[0].id
     const genre = data.items[0].track.artists
@@ -27,9 +19,13 @@ const getRecPl = async (token, href) => {
         seed_artists: artist,
         seed_genres: genre.map((artist) => artist.id).join(","), // assuming genre is an array
         seed_tracks: track,
+        target_danceability: dance,
+        target_energy: en,
+        target_loudness: loud,
+        target_tempo: temp,
+
       },
     });
-    console.log(data2)
     return Promise.resolve(data2);
   } catch (error) {
     console.error(error.stack)
@@ -37,22 +33,71 @@ const getRecPl = async (token, href) => {
   }
 };
 
+const getInfo = async (token, playlist) => {
+  try{
+  const { data: data } = await axios.get("https://api.spotify.com/v1/audio-features?", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        ids: playlist.items.map((track) => track.track.id).join(","),
+      },
+    });
+    console.log(data)
+    
+    return Promise.resolve(data);
+  } catch (error) {
+    console.error(error.stack)
+    return Promise.reject(error);
+  }
+
+ 
+};
+
 const Reccomend = () => {
   const location = useLocation();
   const { token = '', playlist = [] } = location.state || {};
   const [recommendedTracks, setRecommendedTracks] = useState([]);
   const [selectedTracks, setSelectedTracks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [dancability, setDancability] = useState();
+  const [energy, setEnergy] = useState();
+  const [loudness, setLoudness] = useState();
+  const [tempo, setTempo] = useState();
 
   const fetchData = async () => {
+    setLoading(true);
     try {
       if (playlist.tracks.total > 0) {
-        const recTracks = await getRecPl(token, playlist.href);
+        const { data } = await axios.get(playlist.href + "/tracks", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const info = await getInfo(token, data);
+        let dance = 0;
+        let en = 0;
+        let loud = 0;
+        let temp = 0;
+        for(const track of info.audio_features){
+          dance += track.danceability;
+          en += track.energy;
+          loud += track.loudness;
+          temp += track.tempo;
+        }
+        
+        setDancability((dance / info.audio_features.length).toFixed(2));
+        setEnergy((en / info.audio_features.length).toFixed(2));
+        setLoudness((loud / info.audio_features.length).toFixed(2));
+        setTempo((temp / info.audio_features.length).toFixed(2));
+        const recTracks = await getRecPl(token, data, dancability, energy, loudness, tempo);
         setRecommendedTracks(recTracks.tracks);
       }
     } catch (error) {
       console.error(error.stack);
       console.error('Error fetching recommendations:', error);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -74,9 +119,6 @@ const handleRemoveSelected = (trackId) => {
   
   // Get the removed track from recommendedTracks
   const removedTrack = recommendedTracks.find((track) => track.id === trackId);
-  console.log(trackId)
-  console.log(selectedTracks[0].id)
-  console.log(removedTrack)
 
   // Check if removedTrack is defined before adding it back to recommendedTracks
   if (removedTrack) {
@@ -86,53 +128,89 @@ const handleRemoveSelected = (trackId) => {
 
 
 const refresh = () => {
-  console.log(selectedTracks)
   setRecommendedTracks([]);
   fetchData();
 };
+const addSelected = async (selectedTracks) => {
+  try{
+  const { data: data } = await axios.post("https://api.spotify.com/v1/playlists/"+ playlist.name + "/tracks", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        uris: selectedTracks.map((track) => track.uri).join(","), // assuming genre is an array
 
+
+      },
+    });
+    return Promise.resolve(data);
+  }catch(error){
+    console.error(error.stack)
+    return Promise.reject(error);
+  }
+}
 return (
-  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-    <div>
-      <h2>Recommended Tracks</h2>
-      <button onClick={refresh}>Refresh</button>
   
-      {recommendedTracks.map((track) => (
-        <div key={track.id}>
-          <label>
-            {track.name} - {track.artists.map((artist) => artist.name).join(', ')}
-          </label>
-          
-          <button onClick={() => handleAddToSelected(track)}>Add to Playlist
-          <CgAdd />
-          </button>
-        </div>
-      ))}
-    </div>
+  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+    {loading ? (
+      <p>Loading...</p>
+    ) : (
+      <>
+      <div>
+      <h1 style={{justifyContent: 'center'}}>{playlist.name}</h1>
+      <label>Dancability: {dancability}</label>
+      <div/><label>Energy: {energy}</label>
+      <div/><label>Loudness: {loudness}</label>
+      <div/><label>Tempo: {tempo}</label>
 
-    <div>
-      <h3>Selected Tracks</h3>
-      {selectedTracks.map((track) => (
-        console.log(track),
-        <div key={track.id}>
-          {/* You can customize this part based on your requirements */}
-          {
-            <p>{track.name}</p>
-          }
-          <button onClick={() => handleRemoveSelected(track.id)}>
-            Remove from Playlist
-            <CgRemove />
-          </button>
+
+
+      </div>
+
+        <div>
+          <h1></h1>
+          <h2>Recommended Tracks</h2>
+          <button onClick={refresh}>Refresh</button>
+  
+          {recommendedTracks.map((track) => (
+            <div key={track.id}>
+              <img src={track.album.images[0].url} alt={track.name} style={{ maxWidth: '40px', maxHeight: '40px' }} />
+  
+              <label>
+                {track.name} - {track.artists.map((artist) => artist.name).join(', ')}
+              </label>
+              
+              
+              <button onClick={() => handleAddToSelected(track)}>
+                <CgAdd />
+              </button>
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
+  
+        <div>
+          <h1></h1>
+          <h2>Selected Tracks</h2>
+          {selectedTracks.map((track) => (
+            <div key={track.id}>
+              <img src={track.album.images[0].url} alt={track.name} style={{ maxWidth: '40px', maxHeight: '40px' }} />
+
+              {/* You can customize this part based on your requirements */}
+              <label>{track.name}</label>
+              <button onClick={() => handleRemoveSelected(track.id)}>
+                <CgRemove style={{ color: 'green' }} />
+              </button>
+            </div>
+          ))}
+          <div><button onClick={() => addSelected(selectedTracks)}>
+                <label>add tracks</label>
+              </button></div>
+        </div>
+      </>
+    )}
   </div>
 );
-
-
-
-};
-
+          }
 
 export default Reccomend;
 
