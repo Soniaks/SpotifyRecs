@@ -3,13 +3,18 @@ import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 import { CgAdd } from "react-icons/cg";
 import { CgRemove} from "react-icons/cg";
+import {GrRefresh} from "react-icons/gr";
+import { IconContext } from "react-icons";
 
 
 
-const getRecPl = async (token, data, dance, en, loud, temp, tracks) => {
+const getRecPl = async (token, data, dance, en, loud, temp, tracks, artists) => {
   try {
     console.log(tracks);
+    console.log(dance);
+    console.log(artists);
     let params = {
+      limit: 50,
       seed_artists: data.items[0].track.artists[0].id,
       seed_genres: data.items[0].track.artists.map((artist) => artist.id).join(","),
       target_danceability: dance,
@@ -21,6 +26,7 @@ const getRecPl = async (token, data, dance, en, loud, temp, tracks) => {
     // Include seed_tracks if tracks are provided
     if (tracks && tracks.length > 0) {
       params.seed_tracks = tracks.join(",");
+      params.seed_artists = artists;
     } else {
       params.seed_tracks = data.items[0].track.id;
     }
@@ -66,7 +72,6 @@ const getPlaylist = async (token, playlist) => {
       Authorization: `Bearer ${token}`,
     },
   });
-  console.log(data)
   return Promise.resolve(data);
 }catch (error) {
   console.error(error.stack)
@@ -86,11 +91,13 @@ const Reccomend = () => {
   const [loudness, setLoudness] = useState();
   const [tempo, setTempo] = useState();
   const [tracksForRecs, setTracksForRecs] = useState([]); //songs to use in reccomendation
+  const [artistForRecs, setArtistForRecs] = useState(""); //songs to use in reccomendation
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const data = await getPlaylist(token, playlist);
+      console.log(data.items);
       setPlaylistTracks(data.items);
       
         const info = await getInfo(token, data);
@@ -110,8 +117,13 @@ const Reccomend = () => {
         setEnergy((en / info.audio_features.length).toFixed(2));
         setLoudness((loud / info.audio_features.length).toFixed(2));
         setTempo((temp / info.audio_features.length).toFixed(2));
-        const recTracks = await getRecPl(token, data, dancability, energy, loudness, tempo, tracksForRecs);
-        setRecommendedTracks(recTracks.tracks);
+        const recTracks = await getRecPl(token, data, dancability, energy, loudness, tempo, tracksForRecs, artistForRecs);
+        const uniqueRecTracks = recTracks.tracks.filter((recTrack) => {
+          return !data.items.some((playlistTrack) => playlistTrack.track.id === recTrack.id);
+        });
+    
+        setRecommendedTracks(uniqueRecTracks);
+        setTracksForRecs([]);
 
       
     } catch (error) {
@@ -141,20 +153,36 @@ const handleAddToSelected = (trackId) => {
 
 const handleChooseSong = (track) => {
   // Check if the song is already selected
-  console.log(track.track)
-  if (tracksForRecs.includes(track.track.id)) {
+  console.log(track);
+
+  const trackId = track.track.id;
+  const artistId = track.track.artists[0]?.id; // Using optional chaining to avoid errors if artists[0] is undefined
+
+  console.log(trackId);
+  console.log(artistId);
+
+  if (tracksForRecs.includes(trackId)) {
     console.log(tracksForRecs);
-    setTracksForRecs((prevSelected) => prevSelected.filter((id) => id !== track.track.id));
-    console.log(tracksForRecs);
-  } else {
-    console.log(tracksForRecs)
-    // Check if the number of selected songs is less than 2
-    if (tracksForRecs.length < 2) {
-      setTracksForRecs((prevSelected) => [...prevSelected, track.track.id]);
+    setTracksForRecs((prevSelected) => prevSelected.filter((id) => id !== trackId));
+    
+    if (artistId) {
+      setArtistForRecs(artistId);
+      console.log(artistForRecs);
     }
+  } else {
+    console.log(artistForRecs);
+
+    // Check if the number of selected songs is less than 2
+    if (tracksForRecs.length < 2 && artistId) {
+      setTracksForRecs((prevSelected) => [...prevSelected, trackId]);
+      setArtistForRecs(artistId);
+    }
+
     console.log(tracksForRecs);
+    console.log(artistForRecs);
   }
 };
+
 
 
 const handleRemoveSelected = (trackId) => {
@@ -196,15 +224,23 @@ const { data: data } = await axios({
 }
 return (
   
-  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+  <div>
     {loading ? (
       <p>Loading...</p>
     ) : (
       <>
-      <div>
       <h1></h1>
-      <h1 style={{justifyContent: 'center'}}>{playlist.name}</h1>
-      <label>Dancability: <span>{dancability}</span></label>
+      <IconContext.Provider
+      value={{ color: 'green', size: '25px', style: { backgroundColor: '#282c34' } }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+  <h1 style={{ justifyContent: 'center' }}>{playlist.name}        <button style={{ marginLeft: 'auto'}} onClick={refresh}><GrRefresh/></button>
+</h1>
+  <p>Set Dancability and Energy to be used in Reccomendation</p>
+  
+
+  <div style={{ display: 'flex', justifyContent: 'space-between', flexDirection: 'row', width: '60%', marginTop: '20px' }}>
+  <div/><label>Dancability: <span>{dancability}</span></label>
       <input
         type="range"
         min="0"
@@ -227,6 +263,13 @@ return (
       <div/><label>Tempo: {tempo}</label>
       
       <div/> 
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'row'  }}>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <h2>Tracks</h2>
+      <p>Select 1-2 tracks to be used in recommendations</p>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+
       {playlistTracks.map((track) => (
             <div key={track.id}>
               <img src={track.track.album.images[0].url} alt={track.track.name} style={{ maxWidth: '40px', maxHeight: '40px' }}/>
@@ -241,13 +284,14 @@ return (
               
             </div>
           ))}
+          </div>
  </div>
 
         <div>
           <h1></h1>
           <h2>Recommended Tracks</h2>
-          <button onClick={refresh}>Refresh</button>
-  
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+
           {recommendedTracks.map((track) => (
             <div key={track.id}>
               <img src={track.album.images[0].url} alt={track.name} style={{ maxWidth: '40px', maxHeight: '40px' }} />
@@ -262,11 +306,14 @@ return (
               </button>
             </div>
           ))}
+          </div>
         </div>
   
         <div>
           <h1></h1>
           <h2>Selected Tracks</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+
           {selectedTracks.map((track) => (
             <div key={track.id}>
               <img src={track.album.images[0].url} alt={track.name} style={{ maxWidth: '40px', maxHeight: '40px' }} />
@@ -278,10 +325,14 @@ return (
               </button>
             </div>
           ))}
+          </div>
           <div><button onClick={() => addSelected(selectedTracks)}>
-                <label>add tracks</label>
+                <label>add tracks to playlist</label>
               </button></div>
         </div>
+        </div>
+        </div>
+        </IconContext.Provider>
       </>
     )}
   </div>

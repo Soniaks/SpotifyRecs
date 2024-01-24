@@ -7,7 +7,6 @@ import NavBar from './Components/NavBar';
 import TopTracks from './Components/TopTracks';
 import Playlists from './Components/Playlists/Playlists';
 import Reccomend from './Components/Playlists/Reccomend';
-import Home from './Components/Home'
 
 
 function App() {
@@ -68,7 +67,7 @@ function App() {
           setUserID(userID);
   
           const playlistData = await getPlaylists(userID);
-          setPlaylists(playlistData.items);
+          setPlaylists(playlistData.items.filter((playlist) => playlist.owner.id === userID));
           console.log(playlists)
         }
       } catch (error) {
@@ -170,6 +169,9 @@ async function generateCodeChallenge(codeVerifier) {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        params: {
+          limit: 50,
+        },
       });
       console.log(data)
       // Returning the data wrapped in a resolved Promise
@@ -213,7 +215,6 @@ async function generateCodeChallenge(codeVerifier) {
           <Route path="/top-tracks" element={<TopTracks topTracks={topTracks} />} />
           <Route path="/playlists" element={<Playlists Playlists={playlists} token={token} />} />
           <Route path="/recommendations/:playlistIndex" element={<Reccomend />} />
-          <Route path="/" element={<Home token={token}/>} />
         </Routes>
         )}
 

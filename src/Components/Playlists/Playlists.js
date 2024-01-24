@@ -16,7 +16,7 @@ const Playlists = ({ Playlists, token}) => {
       <select
         id="playlistDropdown"
         onChange={(event) => {
-          const selectedIndex = event.target.value;
+          const selectedIndex = event.target.selectedIndex;
           const selectedPlaylist = Playlists[selectedIndex];
 
           // Navigate to the recommendations page with the selected playlist
