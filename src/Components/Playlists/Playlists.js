@@ -22,6 +22,13 @@ const Playlists = ({ Playlists, token}) => {
           // Navigate to the recommendations page with the selected playlist
           navigateToRecommendations(selectedIndex, selectedPlaylist);
         }}
+        onBlur={(event) => {
+          const selectedIndex = event.target.selectedIndex;
+          const selectedPlaylist = Playlists[selectedIndex];
+
+          // Navigate to the recommendations page with the selected playlist
+          navigateToRecommendations(selectedIndex, selectedPlaylist);
+        }}
       >
         {Playlists.map((playlist, index) => (
           <option key={index} value={index}>

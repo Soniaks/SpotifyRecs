@@ -150,13 +150,23 @@ const handleAddToSelected = (trackId) => {
   setRecommendedTracks((prevRecommend) => prevRecommend.filter((id) => id !== trackId));
 
 };
+const handleSelectChange = (event) => {
+  const selectedOption = event.target.options[event.target.selectedIndex];
+
+  const trackId = selectedOption.value; // Assuming the value is set to the track ID
+  const artist = selectedOption.dataset.artist; // Assuming the track name is the text content
+
+  // Call your handleChooseSong function with the extracted track information
+  handleChooseSong({ track: { id: trackId, artist: artist /* Add other properties as needed */ } });
+
+};
 
 const handleChooseSong = (track) => {
   // Check if the song is already selected
   console.log(track);
 
   const trackId = track.track.id;
-  const artistId = track.track.artists[0]?.id; // Using optional chaining to avoid errors if artists[0] is undefined
+  const artistId = track.track.artist; // Using optional chaining to avoid errors if artists[0] is undefined
 
   console.log(trackId);
   console.log(artistId);
@@ -174,7 +184,9 @@ const handleChooseSong = (track) => {
 
     // Check if the number of selected songs is less than 2
     if (tracksForRecs.length < 2 && artistId) {
+      console.log(tracksForRecs);
       setTracksForRecs((prevSelected) => [...prevSelected, trackId]);
+      console.log(tracksForRecs);
       setArtistForRecs(artistId);
     }
 
@@ -231,7 +243,7 @@ return (
       <>
       <h1></h1>
       <IconContext.Provider
-      value={{ color: 'green', size: '25px', style: { backgroundColor: '#282c34' } }}
+      value={{ color: '#1ED760', size: '25px', style: { backgroundColor: '#282c34' } }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
   <h1 style={{ justifyContent: 'center' }}>{playlist.name}        <button style={{ marginLeft: 'auto'}} onClick={refresh}><GrRefresh/></button>
@@ -240,7 +252,9 @@ return (
   
 
   <div style={{ display: 'flex', justifyContent: 'space-between', flexDirection: 'row', width: '60%', marginTop: '20px' }}>
-  <div/><label>Dancability: <span>{dancability}</span></label>
+  <div/>
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+  <label>Dancability: <span>{dancability}</span></label>
       <input
         type="range"
         min="0"
@@ -249,6 +263,9 @@ return (
         value={dancability}
         onChange={updateValue('dancability', setDancability)}
       />
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+
       <div/><label>Energy: <span>{energy}</span></label>
       <input
       type="range"
@@ -258,34 +275,40 @@ return (
         step="0.01"
         onChange={updateValue('energy', setEnergy)}
       />
+      </div>
       <div/><label>Loudness: {loudness}</label>
      
       <div/><label>Tempo: {tempo}</label>
       
-      <div/> 
       </div>
-      <div style={{ display: 'flex', flexDirection: 'row'  }}>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <h2>Tracks</h2>
       <p>Select 1-2 tracks to be used in recommendations</p>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-
-      {playlistTracks.map((track) => (
-            <div key={track.id}>
-              <img src={track.track.album.images[0].url} alt={track.track.name} style={{ maxWidth: '40px', maxHeight: '40px' }}/>
-  
-              <label>
-                {track.track.name} - {track.track.artists.map((artist) => artist.name).join(', ')}
-              </label>
-              <button onClick={() => handleChooseSong(track)}>
-                {tracksForRecs.includes(track.track.id) ? 'Deselect' : 'Select'}
-              </button>
-              
-              
-            </div>
-          ))}
-          </div>
- </div>
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
+      <select 
+      style={{width: '300px'}}
+  id="tracks"
+  onChange={(event) => handleSelectChange(event)}
+  onBlur={(event) => handleSelectChange(event)}
+>
+        {playlistTracks.map((track) => (
+          <option key={track.id} value={track.track.id} data-artist={track.track.artists[0]?.id}>
+            {track.track.name} - {track.track.artists.map((artist) => artist.name).join(', ')}
+          </option>
+        ))}
+      </select>
+      <select
+      style={{width: '300px'}}
+  id="tracks"
+  onChange={(event) => handleSelectChange(event)}
+  onBlur={(event) => handleSelectChange(event)}
+>
+        {playlistTracks.map((track) => (
+          <option key={track.id} value={track.track.id} data-artist={track.track.artists[0]?.id}>
+            {track.track.name} - {track.track.artists.map((artist) => artist.name).join(', ')}
+          </option>
+        ))}
+      </select>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', margin: '50px'  }}>
 
         <div>
           <h1></h1>
@@ -321,7 +344,7 @@ return (
               {/* You can customize this part based on your requirements */}
               <label>{track.name}</label>
               <button onClick={() => handleRemoveSelected(track.id)}>
-                <CgRemove style={{ color: 'green' }} />
+                <CgRemove />
               </button>
             </div>
           ))}

@@ -143,9 +143,8 @@ async function generateCodeChallenge(codeVerifier) {
 
   const getTopTracks = async () => {
     try {
-      console.log(token)
       // The axios.get method returns a Promise
-      const { data } = await axios.get("https://api.spotify.com/v1/me/top/tracks?time_range=short_term", {
+      const { data } = await axios.get("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=50", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
