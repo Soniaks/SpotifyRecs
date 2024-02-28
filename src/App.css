@@ -1,3 +1,4 @@
+@import '~bootstrap/dist/css/bootstrap.min.css';
 .App {
   text-align: center;
 }
@@ -27,7 +28,17 @@
 .App-link {
   color: #61dafb;
 }
+select{
+  background-color: #282c34;
+  color: #1ED760;
+}
 
+button{
+  background-color: #282c34;
+  border: none;
+  color: #1ED760;
+
+}
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
